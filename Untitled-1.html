@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carta Secreta ❤️</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #fce4ec, #f8bbd0);
+    min-height: 100vh;
+}
+
+/* PANTALLAS */
+.screen {
+    display: none;
+    min-height: 100vh;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.screen.active {
+    display: flex;
+}
+
+/* PANTALLA DE CLAVE */
+.password-screen {
+    text-align: center;
+}
+
+.password-box {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 30px;
+    border-radius: 25px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    width: 330px;
+}
+
+.password-box h1 {
+    color: #d81b60;
+    margin-bottom: 10px;
+}
+
+.password-box p {
+    color: #777;
+}
+
+.input-display {
+    width: 100%;
+    height: 50px;
+    border: 2px solid #f48fb1;
+    border-radius: 15px;
+    text-align: center;
+    font-size: 25px;
+    letter-spacing: 10px;
+    margin: 20px 0;
+    color: #d81b60;
+    background: #fff5f8;
+}
+
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.keypad button {
+    height: 55px;
+    border: none;
+    border-radius: 15px;
+    background: #f48fb1;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.keypad button:hover {
+    background: #ec407a;
+    transform: scale(1.05);
+}
+
+.keypad button.action-btn {
+    background: #e91e63;
+}
+
+/* CARTA */
+.notepad-screen {
+    position: relative;
+    padding: 40px 10px;
+}
+
+.notepad {
+    position: relative;
+    z-index: 2;
+    background: rgba(255, 248, 251, 0.95);
+    width: 100%;
+    max-width: 550px;
+    padding: 35px;
+    border-radius: 25px;
+    border: 3px solid #f8bbd0;
+    box-shadow: 0 10px 35px rgba(0,0,0,0.18);
+    text-align: center;
+    margin: auto;
+}
+
+.notepad .date {
+    color: #ad1457;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.notepad h2 {
+    color: #d81b60;
+    margin-bottom: 20px;
+}
+
+.notepad p {
+    color: #555;
+    line-height: 1.7;
+    text-align: left;
+    font-family: "Comic Sans MS", cursive;
+}
+
+.final-love {
+    text-align: center !important;
+    color: #d81b60 !important;
+    font-size: 22px;
+    font-weight: bold;
+}
+
+/* FOTO */
+.foto-amor {
+    display: block;
+    width: 220px;
+    height: 220px;
+    object-fit: cover;
+    margin: 20px auto;
+    border-radius: 50%;
+    border: 5px solid #f8bbd0;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+/* FLORES FONDO */
+.flores-marco {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0.8;
+}
+
+/* MÚSICA */
+.music-box {
+    margin: 25px auto 10px;
+    padding: 15px;
+    background: #fff0f6;
+    border-radius: 18px;
+}
+
+.music-box p {
+    text-align: center;
+    margin: 0 0 10px;
+    color: #c2185b;
+    font-family: Arial, sans-serif;
+}
+
+audio {
+    width: 100%;
+}
+
+@media (max-width: 700px) {
+    .notepad {
+        padding: 25px 18px;
+    }
+
+    .foto-amor {
+        width: 170px;
+        height: 170px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- PANTALLA DE CONTRASEÑA -->
+<div id="passwordScreen" class="screen password-screen active">
+    <div class="password-box">
+        <h1>💌 Carta Secreta</h1>
+        <p>Ingresa la clave para abrirla ❤️</p>
+        <input type="password" id="inputDisplay" class="input-display" readonly>
+        <div class="keypad">
+            <button onclick="enterDigit('1')">1</button>
+            <button onclick="enterDigit('2')">2</button>
+            <button onclick="enterDigit('3')">3</button>
+            <button onclick="enterDigit('4')">4</button>
+            <button onclick="enterDigit('5')">5</button>
+            <button onclick="enterDigit('6')">6</button>
+            <button onclick="enterDigit('7')">7</button>
+            <button onclick="enterDigit('8')">8</button>
+            <button onclick="enterDigit('9')">9</button>
+            <button class="action-btn" onclick="deleteDigit()">⌫</button>
+            <button onclick="enterDigit('0')">0</button>
+            <button class="action-btn" onclick="clearInput()">C</button>
+        </div>
+    </div>
+</div>
+
+<!-- PANTALLA DE LA CARTA -->
+<div id="notepadScreen" class="screen notepad-screen">
+    <!-- IMAGEN DE FONDO DE FLORES -->
+    <img src="Flores.png.png" class="flores-marco" alt="Flores" onerror="this.style.display='none'">
+
+    <div class="notepad">
+        <div class="date">📅 2 octubre 2026</div>
+        <h2>💌 Para el Amor de mi Vida</h2>
+
+        <img src="foto.jpg.jpeg" class="foto-amor" alt="Nuestra foto" onerror="this.src='https://via.placeholder.com/220?text=Tu+Foto+Aqui'">
+
+        <div class="music-box">
+            <p>🎵 Nuestra canción ❤️</p>
+            <audio controls>
+                <source src="Robarteunbeso.mp3.mp3" type="audio/mpeg">
+                Tu navegador no soporta el reproductor de audio.
+            </audio>
+        </div>
+
+        <p>Quiero que sepas lo feliz que soy por tenerte en mi vida. Desde que llegaste, todo cambió para mejor. Me haces sentir amada, cuidada y acompañada de una forma que nunca antes había sentido.</p>
+        <p>A tu lado aprendí lo que es el amor verdadero, ese que se demuestra con acciones, con palabras sinceras y con esos pequeños detalles que hacen la diferencia. Gracias por estar siempre conmigo, por darme tu tiempo, tu cariño y tu comprensión.</p>
+        <p>No sé cómo explicarlo, pero contigo mi corazón está en paz. Eres mi alegría diaria y la razón de tantas sonrisas.</p>
+        <p class="final-love">Te amo profundamente. ♡</p>
+    </div>
+</div>
+
+<script>
+const correctPassword = "0808";
+let input = "";
+
+function enterDigit(digit) {
+    if (input.length < 4) {
+        input += digit;
+        document.getElementById("inputDisplay").value = input;
+    }
+
+    if (input.length === 4) {
+        if (input === correctPassword) {
+            document.getElementById("passwordScreen").classList.remove("active");
+            document.getElementById("notepadScreen").classList.add("active");
+        } else {
+            alert("Contraseña incorrecta, intenta de nuevo ❤️");
+            clearInput();
+        }
+    }
+}
+
+function deleteDigit() {
+    if (input.length > 0) {
+        input = input.slice(0, -1);
+        document.getElementById("inputDisplay").value = input;
+    }
+}
+
+function clearInput() {
+    input = "";
+    document.getElementById("inputDisplay").value = "";
+}
+</script>
+
+</body>
+</html>
