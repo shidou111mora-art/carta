@@ -221,19 +221,21 @@ audio {
 <!-- PANTALLA DE LA CARTA -->
 <div id="notepadScreen" class="screen notepad-screen">
     <!-- IMAGEN DE FONDO DE FLORES -->
-    <img src="Flores.png.png" class="flores-marco" alt="Flores" onerror="this.style.display='none'">
+    <img src="Flores.png" class="flores-marco" alt="Flores" onerror="this.src='flores.png';">
 
     <div class="notepad">
         <div class="date">📅 2 octubre 2026</div>
         <h2>💌 Para el Amor de mi Vida</h2>
 
-        <img src="foto.jpg.jpeg" class="foto-amor" alt="Nuestra foto" onerror="this.src='https://via.placeholder.com/220?text=Tu+Foto+Aqui'">
+        <!-- FOTO CON AUTO-BUSQUEDA DE MAYUSCULAS/MINUSCULAS -->
+        <img src="foto.jpg" class="foto-amor" alt="Nuestra foto" onerror="if(!this.tried){this.tried=1; this.src='Foto.jpg';} else if(this.tried===1){this.tried=2; this.src='foto.jpeg';} else {this.src='Foto.jpeg';}">
 
         <div class="music-box">
             <p>🎵 Nuestra canción ❤️</p>
-            <audio controls>
-                <source src="Robarteunbeso.mp3.mp3" type="audio/mpeg">
-                Tu navegador no soporta el reproductor de audio.
+            <audio controls preload="auto">
+                <source src="Robarteunbeso.mp3" type="audio/mpeg">
+                <source src="robarteunbeso.mp3" type="audio/mpeg">
+                <source src="Robarteunbeso.MP3" type="audio/mpeg">
             </audio>
         </div>
 
