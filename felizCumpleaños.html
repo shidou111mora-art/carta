@@ -219,13 +219,18 @@ function crearTorta(canvas, transparente=false){
   const disco = new THREE.Mesh(new THREE.TorusGeometry(2.3,.07,12,60), new THREE.MeshBasicMaterial({color:0xff3df0}));
   disco.rotation.x = Math.PI/2; disco.position.y = -.05; g.add(disco);
 
+  const mueveUniverso=canvas.id==='cake3d';
+  const zonaGesto=mueveUniverso ? $('escena') : canvas;
   let drag=false, lastX=0, lastY=0;
   canvas.style.pointerEvents='auto'; canvas.style.touchAction='none';
-  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});
-  canvas.addEventListener('pointerup',()=>drag=false);
-  canvas.addEventListener('pointercancel',()=>drag=false);
-  const mueveUniverso=canvas.id==='cake3d';
-  canvas.addEventListener('pointermove',e=>{
+  if(mueveUniverso) zonaGesto.style.touchAction='none';
+  zonaGesto.addEventListener('pointerdown',e=>{
+    if(mueveUniverso && e.target.closest && e.target.closest('.foto')) return;
+    drag=true;lastX=e.clientX;lastY=e.clientY;zonaGesto.setPointerCapture(e.pointerId);
+  });
+  zonaGesto.addEventListener('pointerup',()=>drag=false);
+  zonaGesto.addEventListener('pointercancel',()=>drag=false);
+  zonaGesto.addEventListener('pointermove',e=>{
     if(!drag) return;
     const dx=e.clientX-lastX, dy=e.clientY-lastY;
     if(mueveUniverso){
