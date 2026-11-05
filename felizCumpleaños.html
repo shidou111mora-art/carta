@@ -36,8 +36,8 @@
 
   /* ---------- Escena principal ---------- */
   #escena{position:fixed;inset:0;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,rgba(82,20,150,.36),transparent 38%),radial-gradient(ellipse at 15% 42%,rgba(0,145,190,.20),transparent 42%),radial-gradient(ellipse at 88% 36%,rgba(195,35,160,.18),transparent 40%),radial-gradient(ellipse at 50% 70%,#080817 0%,#02020a 67%,#000 100%)}
-  #escena::before,#escena::after{content:"";position:absolute;left:50%;top:59%;width:min(94vw,1000px);height:min(29vh,280px);border:1px solid #42f7ff88;border-radius:50%;transform:translate(-50%,-50%) rotate(-8deg);box-shadow:0 0 14px #00d9ff66,inset 0 0 14px #00d9ff33;pointer-events:none;z-index:1}
-  #escena::after{width:min(78vw,820px);height:min(22vh,210px);border-color:#ff42d488;transform:translate(-50%,-50%) rotate(8deg);box-shadow:0 0 16px #ff2bd666,inset 0 0 14px #ff2bd633}
+  #escena::before,#escena::after{content:"";position:absolute;left:50%;top:59%;width:min(94vw,1000px);height:min(29vh,280px);border:1px solid #42f7ff88;border-radius:50%;transform:translate(-50%,-50%) rotateX(var(--scene-pitch,0rad)) rotateZ(calc(-8deg + var(--scene-yaw,0rad)));box-shadow:0 0 14px #00d9ff66,inset 0 0 14px #00d9ff33;pointer-events:none;z-index:1}
+  #escena::after{width:min(78vw,820px);height:min(22vh,210px);border-color:#ff42d488;transform:translate(-50%,-50%) rotateX(var(--scene-pitch,0rad)) rotateZ(calc(8deg + var(--scene-yaw,0rad)));box-shadow:0 0 16px #ff2bd666,inset 0 0 14px #ff2bd633}
   #bg-canvas{position:absolute;inset:0;width:100%;height:100%;mix-blend-mode:screen;opacity:.92}
   #cake3d{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
   #titulo{position:absolute;top:9%;left:0;right:0;text-align:center;font-family:'Cinzel',serif;font-size:clamp(.9rem,3vw,1.4rem);letter-spacing:.14em;color:#9fffff;
@@ -169,6 +169,13 @@ function fit(c){ c.width = c.clientWidth * devicePixelRatio; c.height = c.client
   loop();
 })();
 
+let giroUniverso=0, inclinacionUniverso=0;
+function actualizarOrientacionEscena(){
+  const escena=$('escena');
+  escena.style.setProperty('--scene-yaw',`${giroUniverso}rad`);
+  escena.style.setProperty('--scene-pitch',`${inclinacionUniverso}rad`);
+}
+
 /* ================= Torta 3D (Three.js) ================= */
 function crearTorta(canvas, transparente=false){
   const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
@@ -217,10 +224,19 @@ function crearTorta(canvas, transparente=false){
   canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});
   canvas.addEventListener('pointerup',()=>drag=false);
   canvas.addEventListener('pointercancel',()=>drag=false);
+  const mueveUniverso=canvas.id==='cake3d';
   canvas.addEventListener('pointermove',e=>{
     if(!drag) return;
-    g.rotation.y+=(e.clientX-lastX)*.012;
-    g.rotation.x=Math.max(-1.15,Math.min(1.15,g.rotation.x+(e.clientY-lastY)*.012));
+    const dx=e.clientX-lastX, dy=e.clientY-lastY;
+    if(mueveUniverso){
+      giroUniverso+=dx*.012;
+      inclinacionUniverso=Math.max(-1.15,Math.min(1.15,inclinacionUniverso+dy*.012));
+      g.rotation.y=giroUniverso; g.rotation.x=inclinacionUniverso;
+      actualizarOrientacionEscena();
+    }else{
+      g.rotation.y+=dx*.012;
+      g.rotation.x=Math.max(-1.15,Math.min(1.15,g.rotation.x+dy*.012));
+    }
     lastX=e.clientX;lastY=e.clientY;
   });
 
@@ -234,7 +250,10 @@ function crearTorta(canvas, transparente=false){
   }
   (function anim(){
     resize();
-    if(!drag) g.rotation.y += .004;
+    if(mueveUniverso){
+      if(!drag) giroUniverso+=.004;
+      g.rotation.y=giroUniverso; g.rotation.x=inclinacionUniverso;
+    }else if(!drag) g.rotation.y += .004;
     renderer.render(scene,cam);
     requestAnimationFrame(anim);
   })();
@@ -257,13 +276,15 @@ function galaxia(t){
   bctx.fillStyle='rgba(0,0,0,.25)'; bctx.fillRect(0,0,bg.width,bg.height);
   estrellasFondo.forEach(s=>{
     const brillo=.25+.75*(.5+.5*Math.sin(t*.0018+s.p));
+    const dx=s.x-.5,dy=s.y-.5,co=Math.cos(giroUniverso),si=Math.sin(giroUniverso);
+    const sx=.5+dx*co-dy*si, sy=.5+(dx*si+dy*co)*Math.cos(inclinacionUniverso);
     bctx.fillStyle=`hsla(${s.h},100%,${70+brillo*20}%,${brillo})`;
-    bctx.fillRect(s.x*bg.width,s.y*bg.height,s.s*devicePixelRatio,s.s*devicePixelRatio);
+    bctx.fillRect(sx*bg.width,sy*bg.height,s.s*devicePixelRatio,s.s*devicePixelRatio);
   });
   const cx = bg.width/2, cy = bg.height*.59, R = bg.width*.52;
   estrellas.forEach(s=>{
-    const a = s.a + t*.00015*(1.2-s.r);
-    const x = cx + Math.cos(a)*s.r*R, y = cy + Math.sin(a)*s.r*R*.42;
+    const a = s.a + t*.00015*(1.2-s.r) + giroUniverso;
+    const x = cx + Math.cos(a)*s.r*R, y = cy + Math.sin(a)*s.r*R*.42*Math.cos(inclinacionUniverso);
     bctx.fillStyle=`hsl(${s.h},100%,${55+s.r*20}%)`;
     bctx.fillRect(x,y,s.s*devicePixelRatio,s.s*devicePixelRatio);
   });
@@ -286,10 +307,10 @@ function montarFotos(){
   function orbitar(t){
     const W = innerWidth, H = innerHeight;
     cont.querySelectorAll('.foto').forEach(el=>{
-      const a = el._fase + t*.0004;
+      const a = el._fase + t*.0004 + giroUniverso;
       el.style.left = (W*.5 + Math.cos(a)*Math.min(W*.32,400)) + 'px';
-      el.style.top  = (H*.59 + Math.sin(a)*Math.min(H*.18,170)) + 'px';
-      el.style.zIndex = Math.sin(a)>0 ? 5 : 1;
+      el.style.top  = (H*.59 + Math.sin(a)*Math.min(H*.18,170)*Math.cos(inclinacionUniverso) + Math.sin(inclinacionUniverso)*H*.06) + 'px';
+      el.style.zIndex = Math.sin(a)*Math.cos(inclinacionUniverso)>0 ? 5 : 1;
     });
     requestAnimationFrame(orbitar);
   }
@@ -311,9 +332,9 @@ frases.forEach(t=>{const d=document.createElement('div');d.className='frase';d.t
   const els = [...orb.children];
   (function loop(t){
     els.forEach((el,i)=>{
-      const a = t*.0003 + i/els.length*Math.PI*2;
+      const a = t*.0003 + i/els.length*Math.PI*2 + giroUniverso;
       el.style.left = (innerWidth*.5 + Math.cos(a)*Math.min(innerWidth*.29,380)) + 'px';
-      el.style.top  = (innerHeight*.62 + Math.sin(a)*Math.min(innerHeight*.2,190)) + 'px';
+      el.style.top  = (innerHeight*.59 + Math.sin(a)*Math.min(innerHeight*.2,190)*Math.cos(inclinacionUniverso) + Math.sin(inclinacionUniverso)*innerHeight*.06) + 'px';
       el.style.opacity = .4 + .6*(Math.sin(a)+1)/2;
     });
     requestAnimationFrame(loop);
