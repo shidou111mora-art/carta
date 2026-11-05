@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feliz Cumpleaños</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cinzel:wght@700&display=swap" rel="stylesheet">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:Georgia,serif;color:#fff}
+  .hidden{display:none!important}
+  canvas{display:block}
+
+  /* ---------- Pantalla 1: EMPEZAR ---------- */
+  #empezar-overlay{position:fixed;inset:0;z-index:100;background:#000;display:flex;align-items:center;justify-content:center;text-align:center}
+  .empezar-titulo{font-family:'Great Vibes',cursive;font-size:2.6rem;color:#ffd7f5;margin-bottom:.5rem}
+  .empezar-sub{color:#7ff;margin-bottom:1.6rem;letter-spacing:.08em}
+  #btnEmpezar,.btn-iniciar{border:0;cursor:pointer;color:#fff;font-weight:bold;letter-spacing:.12em;padding:.9rem 2.4rem;border-radius:999px;
+    background:linear-gradient(90deg,#c0f,#f0a);box-shadow:0 0 22px #f0c}
+
+  /* ---------- Pantalla 2: INICIAR ---------- */
+  #start-overlay{position:fixed;inset:0;z-index:90;background:radial-gradient(circle at 50% 30%,#12062a,#000 70%);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem}
+  #fireworks-overlay-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  .contenido-inicio{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:.6rem}
+  .contenido-inicio h1{font-family:'Great Vibes',cursive;font-size:3.2rem;font-weight:400;color:#7ff;text-shadow:0 0 14px #0cf}
+  .torta-contenedor{width:260px;height:250px;filter:drop-shadow(0 0 20px #f09)}
+  #tortaCanvas{width:100%;height:100%}
+  .torta-hint{font-size:.65rem;color:#aaa}
+  .mensaje{font-size:.85rem;color:#ffcf66;max-width:290px;line-height:1.4}
+  .subtitulo-boton{font-size:.75rem;color:#4ff;letter-spacing:.06em}
+  .btn-musica-inicio{position:absolute;top:14px;right:14px;z-index:3;width:38px;height:38px;border-radius:50%;border:0;
+    background:#e5b;color:#fff;cursor:pointer;box-shadow:0 0 12px #e5b}
+
+  /* ---------- Escena principal ---------- */
+  #escena{position:fixed;inset:0;background:#000}
+  #escena::before,#escena::after{content:"";position:absolute;left:50%;top:62%;width:min(94vw,1000px);height:min(29vh,280px);border:1px solid #42f7ff88;border-radius:50%;transform:translate(-50%,-50%) rotate(-8deg);box-shadow:0 0 14px #00d9ff66,inset 0 0 14px #00d9ff33;pointer-events:none;z-index:1}
+  #escena::after{width:min(78vw,820px);height:min(22vh,210px);border-color:#ff42d488;transform:translate(-50%,-50%) rotate(8deg);box-shadow:0 0 16px #ff2bd666,inset 0 0 14px #ff2bd633}
+  #bg-canvas{position:absolute;inset:0;width:100%;height:100%}
+  #cake3d{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  #titulo{position:absolute;top:8%;left:0;right:0;text-align:center;font-family:'Cinzel',serif;font-size:clamp(.8rem,2.4vw,1.35rem);letter-spacing:.22em;color:#8fffff;
+    text-shadow:0 0 8px #0cf,0 0 20px #00bfff;white-space:nowrap;overflow:hidden;z-index:3}
+  #titulo span{display:inline-block;animation:brillo 3s ease-in-out infinite alternate}
+  @keyframes brillo{to{text-shadow:0 0 12px #0ff,0 0 28px #00bfff,0 0 40px #f0c}}
+  @keyframes marquee{to{transform:translateX(-100%)}}
+  .foto{position:absolute;width:clamp(48px,8vw,78px);height:clamp(48px,8vw,78px);border-radius:50%;object-fit:cover;border:2px solid #73faff;cursor:pointer;
+    box-shadow:0 0 12px #26eeff,0 0 26px #d0f;z-index:5;transform:translate(-50%,-50%);animation:fotoPulso 2.6s ease-in-out infinite alternate}
+  @keyframes fotoPulso{to{box-shadow:0 0 18px #ff43de,0 0 32px #f09}}
+  #frase-orbita{position:absolute;inset:0;pointer-events:none}
+  .frase{position:absolute;font-family:'Cinzel',serif;font-size:.6rem;color:#8ff;text-shadow:0 0 8px #0ff;white-space:nowrap;transform:translate(-50%,-50%)}
+
+  /* ---------- Tarjeta de mensaje ---------- */
+  #message-overlay{position:fixed;inset:0;z-index:150;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;padding:1.5rem}
+  #message-overlay.on{display:flex}
+  #message-card{background:#14061f;border:1px solid #f0c;border-radius:18px;padding:1.2rem;max-width:340px;text-align:center;box-shadow:0 0 30px #f0c8}
+  #message-image{width:100%;max-height:260px;object-fit:cover;border-radius:12px;margin-bottom:.8rem}
+  #message-title{font-family:'Cinzel',serif;color:#ffd24d;margin-bottom:.4rem;font-size:1.1rem}
+  #message-text{font-size:.9rem;line-height:1.45;margin-bottom:1rem}
+  #message-close{border:0;border-radius:999px;padding:.55rem 1.4rem;background:#f0a;color:#fff;cursor:pointer}
+
+  /* ---------- Controles ---------- */
+  .fullscreen-control{position:fixed;top:14px;left:14px;z-index:200}
+  .fullscreen-btn,.music-btn{width:36px;height:36px;border-radius:50%;border:0;background:#8a5cc7;color:#fff;cursor:pointer;font-size:1rem}
+  .music-control{position:fixed;top:14px;right:14px;z-index:200;display:none;align-items:center;gap:.5rem}
+  #volumeSlider{width:70px}
+</style>
+</head>
+<body>
+
+<!-- Pantalla 1 -->
+<div id="empezar-overlay">
+  <div class="empezar-contenido">
+    <h2 class="empezar-titulo">✨ ¡Todo listo! ✨</h2>
+    <p class="empezar-sub">Con Mucho Cariño Para Ti</p>
+    <button id="btnEmpezar">EMPEZAR</button>
+  </div>
+</div>
+
+<!-- Pantalla 2 -->
+<div id="start-overlay" class="hidden">
+  <canvas id="fireworks-overlay-canvas"></canvas>
+  <button class="btn-musica-inicio" id="btnMusicaInicio" title="Reproducir/Pausar música">♪</button>
+  <div class="contenido-inicio">
+    <h1>Happy Birthday</h1>
+    <div class="torta-contenedor">
+      <canvas id="tortaCanvas"></canvas>
+    </div>
+    <div class="torta-hint">Arrastra para girar</div>
+    <p class="mensaje">¡Feliz cumpleaños, amiga mía! 💗 Que tu día esté lleno de sonrisas, abrazos y sueños cumplidos. Eres un regalo hermoso para mi corazón. 💗</p>
+    <div class="subtitulo-boton">UN UNIVERSO TE ESPERA HAZ CLIC EN INICIAR</div>
+    <button class="btn-iniciar" id="btnIniciarOverlay">INICIAR</button>
+  </div>
+</div>
+
+<!-- Escena principal -->
+<div id="escena" class="hidden">
+  <canvas id="bg-canvas"></canvas>
+  <div id="titulo"><span>FELIZ CUMPLEAÑOS JACKELINE</span></div>
+  <canvas id="cake3d"></canvas>
+  <div id="frase-orbita"></div>
+  <div id="fotos"></div>
+</div>
+
+<!-- Tarjeta de mensaje -->
+<div id="message-overlay">
+  <div id="message-card">
+    <img id="message-image" src="" alt="" crossorigin="anonymous">
+    <h2 id="message-title"></h2>
+    <p id="message-text"></p>
+    <button id="message-close">CERRAR ✦</button>
+  </div>
+</div>
+
+<!-- Pantalla completa -->
+<div class="fullscreen-control" id="fullscreen-control">
+  <button class="fullscreen-btn" id="fullscreenBtn" type="button" aria-label="Entrar en pantalla completa">⛶</button>
+</div>
+
+<!-- Música -->
+<div class="music-control" id="musicControlWrapper">
+  <button class="music-btn" id="musicBtn" aria-label="Alternar música">♪</button>
+  <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.5">
+</div>
+<!-- Pon aquí tus links de audio (mp3) -->
+<audio id="musicaInicio" loop preload="auto"><source src="Robarteunbeso.mp3.mp3" type="audio/mpeg"></audio>
+<audio id="backgroundMusic" loop preload="auto"><source src="Robarteunbeso.mp3.mp3" type="audio/mpeg"></audio>
+
+<!-- Fotos: cambia las URLs por las tuyas -->
+<section id="mis-fotos" hidden aria-hidden="true">
+  <img src="foto1.jpg.jpeg" data-nombre="¡QUE LA PASES DE LO MEJOR HOY!" data-mensaje="Que cada día de este año sea un motivo para sonreír. ¡Feliz cumpleaños!" alt="">
+  <img src="foto2.jpg.jpeg" data-nombre="¡A BRINDAR POR TU CUMPLEAÑOS!" data-mensaje="Te deseo toda la felicidad del mundo, que nunca te falte la salud ni el amor." alt="">
+  <img src="foto3.jpg.jpeg" data-nombre="¡QUE COMIENCE TU GRAN FIESTA!" data-mensaje="¡Muchas felicidades en tu cumpleaños! Te deseo lo mejor y mucho más." alt="">
+  <img src="foto4.jpg.jpeg" data-nombre="¡UN ABRAZO FUERTE EN TU DÍA!" data-mensaje="Sigue brillando, creando y encantando al mundo con tu arte y tu corazón." alt="">
+</section>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+<script>
+/* ================= Utilidades ================= */
+const $ = id => document.getElementById(id);
+function fit(c){ c.width = c.clientWidth * devicePixelRatio; c.height = c.clientHeight * devicePixelRatio; }
+
+/* ================= Fuegos artificiales ================= */
+(function(){
+  const c = $('fireworks-overlay-canvas'), ctx = c.getContext('2d');
+  let parts = [];
+  function boom(x,y){
+    const hue = Math.random()*360;
+    for(let i=0;i<46;i++){
+      const a = Math.PI*2*i/46, s = 1+Math.random()*3.2;
+      parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:1,hue});
+    }
+  }
+  function loop(){
+    if(!$('start-overlay').classList.contains('hidden')){
+      if(c.width!==c.clientWidth*devicePixelRatio) fit(c);
+      ctx.fillStyle='rgba(0,0,0,.22)'; ctx.fillRect(0,0,c.width,c.height);
+      if(Math.random()<.04) boom(Math.random()*c.width, Math.random()*c.height*.6);
+      parts.forEach(p=>{p.x+=p.vx*devicePixelRatio;p.y+=p.vy*devicePixelRatio+.4;p.vx*=.985;p.vy*=.985;p.life-=.014;
+        ctx.fillStyle=`hsla(${p.hue},100%,65%,${Math.max(p.life,0)})`;
+        ctx.beginPath();ctx.arc(p.x,p.y,2*devicePixelRatio,0,7);ctx.fill();});
+      parts = parts.filter(p=>p.life>0);
+    }
+    requestAnimationFrame(loop);
+  }
+  loop();
+})();
+
+/* ================= Torta 3D (Three.js) ================= */
+function crearTorta(canvas, transparente=false){
+  const renderer = new THREE.WebGLRenderer({canvas, alpha:true, antialias:true});
+  renderer.setClearColor(0x000000, 0);
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(45, 1, .1, 100);
+  cam.position.set(0,2.6,transparente?6.2:8.4); cam.lookAt(0,1.2,0);
+  const g = new THREE.Group(); scene.add(g);
+  g.scale.setScalar(transparente ? .78 : .64);
+
+  const pisos = [[2.0,.9,0xe91aa8],[1.45,.8,0xf432c4],[.95,.7,0xff61dc]];
+  let y = 0;
+  pisos.forEach(([r,h,col])=>{
+    const geo = new THREE.CylinderGeometry(r,r,h,48,1);
+    const body = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:col}));
+    body.position.y = y + h/2;
+    g.add(body);
+    const icing = new THREE.Mesh(new THREE.TorusGeometry(r*.98,.055,10,48),new THREE.MeshBasicMaterial({color:0xffb6ed}));
+    icing.rotation.x=Math.PI/2; icing.position.y=y+h*.76; g.add(icing);
+    const trim = new THREE.Mesh(new THREE.TorusGeometry(r*.99,.025,8,48),new THREE.MeshBasicMaterial({color:0x75faff}));
+    trim.rotation.x=Math.PI/2; trim.position.y=y+.08; g.add(trim);
+    y += h;
+  });
+  // velas
+  for(let i=0;i<5;i++){
+    const a = i/5*Math.PI*2, r = .55;
+    const v = new THREE.Mesh(new THREE.CylinderGeometry(.045,.045,.46,10), new THREE.MeshBasicMaterial({color:0xffe889}));
+    v.position.set(Math.cos(a)*r, y+.25, Math.sin(a)*r);
+    const f = new THREE.Mesh(new THREE.SphereGeometry(.085,10,10), new THREE.MeshBasicMaterial({color:0xff9a3c}));
+    f.position.set(v.position.x, y+.52, v.position.z);
+    g.add(v,f);
+  }
+  // Perlas brillantes alrededor de cada piso
+  pisos.forEach(([r,h],i)=>{
+    for(let j=0;j<18;j++){
+      const a=j/18*Math.PI*2, bead=new THREE.Mesh(new THREE.SphereGeometry(.045,8,8),new THREE.MeshBasicMaterial({color:j%2?0x71faff:0xffe889}));
+      bead.position.set(Math.cos(a)*(r+.015),[0,.9,1.7][i]+h*.48,Math.sin(a)*(r+.015)); g.add(bead);
+    }
+  });
+  // plataforma
+  const disco = new THREE.Mesh(new THREE.TorusGeometry(2.3,.07,12,60), new THREE.MeshBasicMaterial({color:0xff3df0}));
+  disco.rotation.x = Math.PI/2; disco.position.y = -.05; g.add(disco);
+
+  let drag=false, lastX=0;
+  canvas.style.pointerEvents='auto'; canvas.style.touchAction='none';
+  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener('pointerup',()=>drag=false);
+  canvas.addEventListener('pointermove',e=>{if(drag){g.rotation.y+=(e.clientX-lastX)*.012;lastX=e.clientX}});
+
+  let lastW=0,lastH=0;
+  function resize(){
+    const w = canvas.clientWidth, h = canvas.clientHeight; if(!w||!h) return;
+    if(w!==lastW||h!==lastH){
+      renderer.setPixelRatio(Math.min(devicePixelRatio,2)); renderer.setSize(w,h,false);
+      cam.aspect = w/h; cam.updateProjectionMatrix(); lastW=w;lastH=h;
+    }
+  }
+  (function anim(){
+    resize();
+    if(!drag) g.rotation.y += .004;
+    renderer.render(scene,cam);
+    requestAnimationFrame(anim);
+  })();
+  return {group:g};
+}
+crearTorta($('tortaCanvas'),true);
+let torta3dIniciada = false;
+
+/* ================= Galaxia ================= */
+const bg = $('bg-canvas'), bctx = bg.getContext('2d');
+const estrellas = Array.from({length:1400},()=>{
+  const arm = Math.floor(Math.random()*3);
+  const r = Math.pow(Math.random(),.6);
+  return {r, a: r*7 + arm*Math.PI*2/3 + (Math.random()-.5)*.6, h: Math.random()<.5?300+Math.random()*40:170+Math.random()*30, s:Math.random()*1.6+.4};
+});
+function galaxia(t){
+  if($('escena').classList.contains('hidden')) return requestAnimationFrame(galaxia);
+  if(bg.width!==bg.clientWidth*devicePixelRatio) fit(bg);
+  bctx.fillStyle='rgba(0,0,0,.25)'; bctx.fillRect(0,0,bg.width,bg.height);
+  const cx = bg.width/2, cy = bg.height*.62, R = bg.width*.52;
+  estrellas.forEach(s=>{
+    const a = s.a + t*.00015*(1.2-s.r);
+    const x = cx + Math.cos(a)*s.r*R, y = cy + Math.sin(a)*s.r*R*.42;
+    bctx.fillStyle=`hsl(${s.h},100%,${55+s.r*20}%)`;
+    bctx.fillRect(x,y,s.s*devicePixelRatio,s.s*devicePixelRatio);
+  });
+  requestAnimationFrame(galaxia);
+}
+requestAnimationFrame(galaxia);
+
+/* ================= Fotos flotantes ================= */
+function montarFotos(){
+  const cont = $('fotos'); cont.innerHTML='';
+  const fotos = [...document.querySelectorAll('#mis-fotos img')];
+  fotos.forEach((img,i)=>{
+    const el = document.createElement('img');
+    el.className='foto'; el.src=img.src; el.alt='';
+    el.dataset.nombre = img.dataset.nombre; el.dataset.mensaje = img.dataset.mensaje;
+    el.addEventListener('click',()=>abrirMensaje(el));
+    cont.appendChild(el);
+    el._fase = i/fotos.length*Math.PI*2;
+  });
+  function orbitar(t){
+    const W = innerWidth, H = innerHeight;
+    cont.querySelectorAll('.foto').forEach(el=>{
+      const a = el._fase + t*.0004;
+      el.style.left = (W*.5 + Math.cos(a)*Math.min(W*.36,430)) + 'px';
+      el.style.top  = (H*.62 + Math.sin(a)*Math.min(H*.2,190)) + 'px';
+      el.style.zIndex = Math.sin(a)>0 ? 5 : 1;
+    });
+    requestAnimationFrame(orbitar);
+  }
+  requestAnimationFrame(orbitar);
+}
+function abrirMensaje(el){
+  $('message-image').src = el.src;
+  $('message-title').textContent = el.dataset.nombre;
+  $('message-text').textContent = el.dataset.mensaje;
+  $('message-overlay').classList.add('on');
+}
+$('message-close').addEventListener('click',()=>$('message-overlay').classList.remove('on'));
+
+/* ================= Frases orbitando ================= */
+const frases = ['FELIZ CUMPLEAÑOS','LA MEJOR','MUCHAS FELICIDADES','TE QUIERO','ERES ÚNICA'];
+const orb = $('frase-orbita');
+frases.forEach(t=>{const d=document.createElement('div');d.className='frase';d.textContent=t;orb.appendChild(d)});
+(function(){
+  const els = [...orb.children];
+  (function loop(t){
+    els.forEach((el,i)=>{
+      const a = t*.0003 + i/els.length*Math.PI*2;
+      el.style.left = (innerWidth*.5 + Math.cos(a)*Math.min(innerWidth*.4,470)) + 'px';
+      el.style.top  = (innerHeight*.62 + Math.sin(a)*Math.min(innerHeight*.24,230)) + 'px';
+      el.style.opacity = .4 + .6*(Math.sin(a)+1)/2;
+    });
+    requestAnimationFrame(loop);
+  })(0);
+})();
+
+/* ================= Flujo de pantallas + música ================= */
+const musicaInicio = $('musicaInicio'), musicaFondo = $('backgroundMusic');
+$('btnEmpezar').addEventListener('click',()=>{
+  $('empezar-overlay').classList.add('hidden');
+  $('start-overlay').classList.remove('hidden');
+  musicaInicio.play().catch(()=>{});
+});
+$('btnMusicaInicio').addEventListener('click',()=>{ musicaInicio.paused ? musicaInicio.play() : musicaInicio.pause(); });
+$('btnIniciarOverlay').addEventListener('click',()=>{
+  musicaInicio.pause();
+  $('start-overlay').classList.add('hidden');
+  $('escena').classList.remove('hidden');
+  $('musicControlWrapper').style.display='flex';
+  if(!torta3dIniciada){ crearTorta($('cake3d'),false); torta3dIniciada = true; }
+  montarFotos();
+  musicaFondo.volume = parseFloat($('volumeSlider').value);
+  musicaFondo.play().catch(()=>{});
+});
+$('musicBtn').addEventListener('click',()=>{ musicaFondo.paused ? musicaFondo.play() : musicaFondo.pause(); });
+$('volumeSlider').addEventListener('input',e=>{ musicaFondo.volume = parseFloat(e.target.value); });
+</script>
+
+<script>
+/* ================= Pantalla completa ================= */
+const fullscreenBtn = document.getElementById('fullscreenBtn');
+
+function getFullscreenElement(){
+  return document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement || null;
+}
+function isFullscreenSupported(){
+  return Boolean(
+    document.fullscreenEnabled || document.webkitFullscreenEnabled || document.msFullscreenEnabled ||
+    document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen ||
+    document.documentElement.msRequestFullscreen
+  );
+}
+function syncFullscreenButtonState(){
+  if(!fullscreenBtn) return;
+  const active = !!getFullscreenElement();
+  const label = active ? 'Salir de pantalla completa' : 'Entrar en pantalla completa';
+  fullscreenBtn.setAttribute('aria-label', label);
+  fullscreenBtn.title = label;
+}
+async function toggleFullscreen(){
+  const activeElement = getFullscreenElement();
+  try{
+    if(activeElement){
+      const exitFn = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+      if(exitFn) await exitFn.call(document);
+    }else{
+      const requestFn = document.documentElement.requestFullscreen ||
+        document.documentElement.webkitRequestFullscreen ||
+        document.documentElement.msRequestFullscreen;
+      if(requestFn) await requestFn.call(document.documentElement);
+    }
+  }catch(error){
+    console.warn('No se pudo cambiar el modo de pantalla completa.', error);
+  }finally{
+    syncFullscreenButtonState();
+  }
+}
+function initFullscreenControl(){
+  const fullscreenControl = document.getElementById('fullscreen-control');
+  if(!fullscreenBtn || !fullscreenControl) return;
+  if(!isFullscreenSupported()){ fullscreenControl.style.display = 'none'; return; }
+  syncFullscreenButtonState();
+  fullscreenBtn.addEventListener('click', function(event){ event.stopPropagation(); toggleFullscreen(); });
+  document.addEventListener('fullscreenchange', syncFullscreenButtonState);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenButtonState);
+  document.addEventListener('msfullscreenchange', syncFullscreenButtonState);
+}
+initFullscreenControl();
+</script>
+
+</body>
+</html>
