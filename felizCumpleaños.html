@@ -88,7 +88,7 @@
     <div class="torta-contenedor">
       <canvas id="tortaCanvas"></canvas>
     </div>
-    <div class="torta-hint">Arrastra para girar</div>
+    <div class="torta-hint">Arrastra en cualquier dirección para girar</div>
     <p class="mensaje">¡Feliz cumpleaños, amiga mía! 💗 Que tu día esté lleno de sonrisas, abrazos y sueños cumplidos. Eres un regalo hermoso para mi corazón. 💗</p>
     <div class="subtitulo-boton">UN UNIVERSO TE ESPERA HAZ CLIC EN INICIAR</div>
     <button class="btn-iniciar" id="btnIniciarOverlay">INICIAR</button>
@@ -212,11 +212,17 @@ function crearTorta(canvas, transparente=false){
   const disco = new THREE.Mesh(new THREE.TorusGeometry(2.3,.07,12,60), new THREE.MeshBasicMaterial({color:0xff3df0}));
   disco.rotation.x = Math.PI/2; disco.position.y = -.05; g.add(disco);
 
-  let drag=false, lastX=0;
+  let drag=false, lastX=0, lastY=0;
   canvas.style.pointerEvents='auto'; canvas.style.touchAction='none';
-  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;canvas.setPointerCapture(e.pointerId)});
+  canvas.addEventListener('pointerdown',e=>{drag=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId)});
   canvas.addEventListener('pointerup',()=>drag=false);
-  canvas.addEventListener('pointermove',e=>{if(drag){g.rotation.y+=(e.clientX-lastX)*.012;lastX=e.clientX}});
+  canvas.addEventListener('pointercancel',()=>drag=false);
+  canvas.addEventListener('pointermove',e=>{
+    if(!drag) return;
+    g.rotation.y+=(e.clientX-lastX)*.012;
+    g.rotation.x=Math.max(-1.15,Math.min(1.15,g.rotation.x+(e.clientY-lastY)*.012));
+    lastX=e.clientX;lastY=e.clientY;
+  });
 
   let lastW=0,lastH=0;
   function resize(){
